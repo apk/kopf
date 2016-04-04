@@ -37,4 +37,9 @@ class JobSet
     end
   end
 
+  def kick(n)
+    j=@jobs[n]
+    j.kick if j
+  end
+
 end
