@@ -39,7 +39,6 @@ class Runner
       @need||=true
       @thread.wakeup if @thread
     end
-    puts "Kick: #{cfg.to_s}"
     start_thread
   end
 
@@ -73,8 +72,10 @@ class Runner
                   puts e.inspect
                 end
               end
+
               cfg=@cfg
               return unless cfg
+              @need=false
             end
 
             puts "+++ #{Time.now.to_s} #{cfg.title}"
