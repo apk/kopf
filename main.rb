@@ -4,6 +4,8 @@ require 'rubygems'
 require 'websocket-client-simple'
 require 'json'
 
+require_relative 'src/jobset.rb'
+
 Dir.chdir __dir__
 
 $jobset=JobSet.new
@@ -53,7 +55,7 @@ loop do
     if s.mtime != tm
       puts "config changed..."
       tm=s.mtime
-      jobset.load(File.read(fn))
+      $jobset.load(File.read(fn))
     end
   rescue => e
     puts "E: #{e.inspect}"
