@@ -10,6 +10,10 @@ Dir.chdir __dir__
 
 $jobset=JobSet.new
 
+def diag(s)
+  STDERR.puts "    #{Time.now.to_s}: #{s}"
+end
+
 def proc_msg(x)
   begin
     j=JSON.parse(x)
@@ -19,7 +23,7 @@ def proc_msg(x)
       $jobset.kick('baseline')
     end
   rescue => e
-    STDERR.puts "E(#{Time.now.to_s}): #{e.inspect}"
+    diag "E: #{e.inspect}"
   end
 end
 
@@ -32,17 +36,17 @@ ws.on :message do |msg|
 end
 
 ws.on :open do
-  STDERR.puts "Opened"
+  diag "Opened"
   # ws.send 'hello!!!'
 end
 
 ws.on :close do |e|
-  STDERR.puts "Closed"
+  diag "Closed"
   p e
 end
 
 ws.on :error do |e|
-  STDERR.puts "Error!"
+  diag "Error!"
   p e
 end
 
@@ -53,11 +57,11 @@ loop do
   begin
     s=File.stat(fn)
     if s.mtime != tm
-      puts "config changed..."
+      diag "config changed..."
       tm=s.mtime
       $jobset.load(File.read(fn))
     end
   rescue => e
-    puts "E: #{e.inspect}"
+    diag "E: #{e.inspect}"
   end
 end
