@@ -10,7 +10,10 @@ class JobSet
   end
 
   def load(txt)
-    json=JSON.parse(txt)
+    load_json(JSON.parse(txt))
+  end
+
+  def load_json(json)
 
     newcfg={}
     json.each_pair do |k,v|
