@@ -78,13 +78,18 @@ class Runner
               @need=false
             end
 
-            puts "+++ #{Time.now.to_s} #{cfg.title}"
-            STDOUT.flush
             @last_start=now_f
-            system(cfg.cmd)
+            if cfg.cmd
+              puts "+++ #{Time.now.to_s} #{cfg.title}"
+              STDOUT.flush
+              system(cfg.cmd)
+              puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
+              STDOUT.flush
+            else
+              puts "=== #{Time.now.to_s} #{cfg.title}"
+              STDOUT.flush
+            end
             @last_end=now_f
-            puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
-            STDOUT.flush
 
           ensure
             @mutex.synchronize do

@@ -21,11 +21,16 @@ class Cfg
   end
 
   def get_opt_strlist(x)
+    r=get_opt_str_or_list(x)
+    (r.is_a? String) ? [r] : r
+  end
+
+  def get_opt_str_or_list(x)
     r=@conf[x]
     if r == nil
       return r
     elsif r.is_a? String
-      return [r]
+      return r
     elsif r.is_a? Array
       r.each do |v|
         unless v.is_a? String
@@ -53,7 +58,7 @@ class Cfg
   def initialize(name,json)
     @conf=json
     @title=get_opt_str('title')||name
-    @cmd=get_str('command')
+    @cmd=get_opt_str_or_list('command')
     @pause=get_opt_int('pause')
     @period=get_opt_int('period')
     @rand=get_opt_int('random')
