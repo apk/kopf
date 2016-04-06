@@ -7,6 +7,9 @@ while true do
     js.load(File.read('test.cfg'))
   rescue => e
     puts "E: #{e.inspect}"
+    e.backtrace.each do |b|
+      puts ":: #{b}"
+    end
   end
 
   sleep (10)
