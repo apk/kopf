@@ -12,11 +12,12 @@ class Runner
     end
   end
 
-  def initialize(cfg)
+  def initialize(cfg,jobset)
+    @jobset=jobset
     @cfg=cfg
 
     @thread=nil
-    @need=false
+    @need=nil
 
     t=now_f
     @last_start=t
@@ -34,9 +35,10 @@ class Runner
     end
   end
 
-  def kick
+  def kick(*a)
     @mutex.synchronize do
-      @need||=true
+      @need||=[]
+      @need+=a
       @thread.wakeup if @thread
     end
     start_thread
@@ -49,6 +51,7 @@ class Runner
         @thread=Thread.new do
           begin
             cfg=nil
+            need=nil
             @mutex.synchronize do
 
               while not @need
@@ -75,21 +78,33 @@ class Runner
 
               cfg=@cfg
               return unless cfg
-              @need=false
+              need=@need
+              @need=nil
             end
 
-            @last_start=now_f
-            if cfg.cmd
+            cmd=cfg.cmd
+            if cmd
               puts "+++ #{Time.now.to_s} #{cfg.title}"
               STDOUT.flush
-              system(cfg.cmd)
+              if cmd.is_a? String
+                need.each do |n|
+                  cmd=cmd+' '+n
+                end
+              else
+                cmd=cmd+need
+              end
+              @last_start=now_f
+              system(*cmd)
+              @last_end=now_f
               puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
               STDOUT.flush
             else
               puts "=== #{Time.now.to_s} #{cfg.title}"
               STDOUT.flush
+              @last_start=now_f
+              @last_end=now_f
             end
-            @last_end=now_f
+            cfg.trigger(@jobset)
 
           ensure
             @mutex.synchronize do

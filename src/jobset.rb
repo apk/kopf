@@ -25,7 +25,7 @@ class JobSet
       if p
         p.set_cfg(c)
       else
-        @jobs[n]=Runner.new(c)
+        @jobs[n]=Runner.new(c,self)
       end
     end
     @jobs.each_pair do |n,j|
@@ -40,9 +40,9 @@ class JobSet
     end
   end
 
-  def kick(n)
+  def kick(n, *a)
     j=@jobs[n]
-    j.kick if j
+    j.kick(*a) if j
   end
 
 end

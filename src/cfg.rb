@@ -63,6 +63,15 @@ class Cfg
     @period=get_opt_int('period')
     @rand=get_opt_int('random')
     @mails=get_opt_strlist('mail-to')
+
+    @trigger=get_opt_str('trigger')
+    @triggerarg=get_opt_strlist('trigger-arg')
+  end
+
+  def trigger(jobset)
+    if @trigger
+      jobset.kick(@trigger, *@triggerarg)
+    end
   end
 
 end
