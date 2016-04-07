@@ -82,16 +82,19 @@ class Runner
               @need=nil
             end
 
+            # begin
             cmd=cfg.cmd
             if cmd
               puts "+++ #{Time.now.to_s} #{cfg.title}"
               STDOUT.flush
-              if cmd.is_a? String
-                need.each do |n|
-                  cmd=cmd+' '+n
+              if need
+                if cmd.is_a? String
+                  need.each do |n|
+                    cmd=cmd+' '+n
+                  end
+                else
+                  cmd=cmd+need
                 end
-              else
-                cmd=cmd+need
               end
               @last_start=now_f
               system(*cmd)
@@ -105,6 +108,10 @@ class Runner
               @last_end=now_f
             end
             cfg.trigger(@jobset)
+            # rescue => e
+            # puts "E: #{e.inspect}"
+            # puts "B: #{e.backtrace.inspect}"
+            # end
 
           ensure
             @mutex.synchronize do

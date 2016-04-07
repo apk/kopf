@@ -25,20 +25,31 @@ class Cfg
     (r.is_a? String) ? [r] : r
   end
 
-  def get_opt_str_or_list(x)
-    r=@conf[x]
-    if r == nil
-      return r
-    elsif r.is_a? String
+  def is_str_or_list(r)
+    if r.is_a? String
       return r
     elsif r.is_a? Array
       r.each do |v|
         unless v.is_a? String
-          throw ArgumentError.new("#{x}(#{r.inspect}) is not a string")
+          return nil
         end
       end
+      return r
     else
-      throw ArgumentError.new("#{x}(#{r.inspect}) is not a string or string list")
+      return nil
+    end
+  end
+
+  def get_opt_str_or_list(x)
+    r=@conf[x]
+    if r == nil
+      return r
+    else
+      r=is_str_or_list(r)
+      unless r
+        throw ArgumentError.new("#{x}(#{r.inspect}) is not a string or string list")
+      end
+      return r
     end
   end
 
@@ -64,13 +75,38 @@ class Cfg
     @rand=get_opt_int('random')
     @mails=get_opt_strlist('mail-to')
 
-    @trigger=get_opt_str('trigger')
-    @triggerarg=get_opt_strlist('trigger-arg')
+    @trigger=@conf['trigger']
+    if @trigger
+      unless is_str_or_list(@trigger)
+        unless @trigger.is_a? Hash
+        throw ArgumentError.new("(#{@trigger.inspect}) is not a string or string list, or hash of such")
+          @trigger.each_pair do |k,v|
+            unless k.is_a? String and is_str_or_list(v)
+              throw ArgumentError.new("(#{@trigger.inspect}) is not a string or string list, or hash of such")
+            end
+          end
+        end
+      end
+    end
   end
 
   def trigger(jobset)
     if @trigger
-      jobset.kick(@trigger, *@triggerarg)
+      if @trigger.is_a? Hash
+        @trigger.each_pair do |k,v|
+          if v.is_a? Array
+            jobset.kick(k,*v)
+          else
+            jobset.kick(k,v)
+          end
+        end
+      elsif @trigger.is_a? Array
+        @trigger.each do |a|
+          jobset.kick(a)
+        end
+      else
+        jobset.kick(@trigger)
+      end
     end
   end
 
