@@ -9,6 +9,15 @@ class Cfg
     @conf.inspect
   end
 
+  def get_bool(x,dfl)
+    r=@conf[x]
+    r=dfl if r == nil
+    if r != true and r != false
+      throw ArgumentError.new("#{x}(#{r.inspect}) is not a bool")
+    end
+    r
+  end
+
   def get_opt_str(x)
     r=@conf[x]
     if r
@@ -64,7 +73,7 @@ class Cfg
     check(@conf[x],x,Numeric)
   end
 
-  attr_reader :title, :cmd, :pause, :period, :rand, :mails
+  attr_reader :title, :cmd, :pause, :period, :rand, :mailto, :logstart, :logoutput
 
   def initialize(name,json)
     @conf=json
@@ -73,7 +82,9 @@ class Cfg
     @pause=get_opt_int('pause')
     @period=get_opt_int('period')
     @rand=get_opt_int('random')
-    @mails=get_opt_strlist('mail-to')
+    @mailto=get_opt_strlist('mail-to')
+    @logstart=get_bool('log-start',true)
+    @logoutput=get_bool('log-output',false)
 
     @trigger=@conf['trigger']
     if @trigger

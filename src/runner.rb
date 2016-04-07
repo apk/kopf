@@ -85,8 +85,10 @@ class Runner
             # begin
             cmd=cfg.cmd
             if cmd
-              puts "+++ #{Time.now.to_s} #{cfg.title}"
-              STDOUT.flush
+              if cfg.logstart
+                puts "+++ #{Time.now.to_s} #{cfg.title}"
+                STDOUT.flush
+              end
               if need
                 if cmd.is_a? String
                   need.each do |n|
@@ -97,13 +99,30 @@ class Runner
                 end
               end
               @last_start=now_f
-              system(*cmd)
+              output=[]
+              IO.popen(cmd,'r',err: [:child, :out]) do |f|
+                f.each_line do |l|
+                  if cfg.logoutput
+                    puts "        #{cfg.title}: #{l}"
+                  end
+                  if cfg.mailto
+                    output.push(l)
+                  end
+                end
+              end
               @last_end=now_f
-              puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
-              STDOUT.flush
+              if cfg.logstart
+                puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
+                STDOUT.flush
+              end
+              output.each do |o|
+                puts o.inspect
+              end
             else
-              puts "=== #{Time.now.to_s} #{cfg.title}"
-              STDOUT.flush
+              if cfg.logstart
+                puts "=== #{Time.now.to_s} #{cfg.title}"
+                STDOUT.flush
+              end
               @last_start=now_f
               @last_end=now_f
             end
