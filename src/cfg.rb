@@ -73,7 +73,8 @@ class Cfg
     check(@conf[x],x,Numeric)
   end
 
-  attr_reader :title, :cmd, :pause, :period, :rand, :mailto, :logstart, :logoutput
+  attr_reader :title, :cmd, :pause, :period, :rand
+  attr_reader :mailto, :mailfrom, :logstart, :logoutput
 
   def initialize(name,json)
     @conf=json
@@ -83,6 +84,7 @@ class Cfg
     @period=get_opt_int('period')
     @rand=get_opt_int('random')
     @mailto=get_opt_strlist('mail-to')
+    @mailfrom=get_opt_strlist('mail-from')
     @logstart=get_bool('log-start',true)
     @logoutput=get_bool('log-output',false)
 

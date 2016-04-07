@@ -1,3 +1,5 @@
+require_relative 'mailer'
+
 class Runner
 
   @@joinlist||=[]
@@ -85,6 +87,7 @@ class Runner
             # begin
             cmd=cfg.cmd
             if cmd
+
               if cfg.logstart
                 puts "+++ #{Time.now.to_s} #{cfg.title}"
                 STDOUT.flush
@@ -110,22 +113,39 @@ class Runner
                   end
                 end
               end
+
+              if cfg.mailto and not output.empty?
+                cfg.mailto.each do |m|
+                  begin
+                    mailer=Mailer.new(cfg.mailfrom || m)
+                    mailer.send(m,
+                                ("#{ENV['USER']||ENV['LOGNAME']}@#{ENV['HOSTNAME']}:"+
+                                 " Job '#{cfg.title}' output"),
+                                output.join("\n"))
+                  rescue => e
+                    puts "E: #{e.inspect}"
+                    puts "B: #{e.backtrace.inspect}"
+                  end
+                end
+              end
+
               @last_end=now_f
               if cfg.logstart
                 puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
                 STDOUT.flush
               end
-              output.each do |o|
-                puts o.inspect
-              end
+
             else
+
               if cfg.logstart
                 puts "=== #{Time.now.to_s} #{cfg.title}"
                 STDOUT.flush
               end
               @last_start=now_f
               @last_end=now_f
+
             end
+
             cfg.trigger(@jobset)
             # rescue => e
             # puts "E: #{e.inspect}"
