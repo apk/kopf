@@ -14,12 +14,14 @@ class Runner
     end
   end
 
-  def initialize(cfg,jobset)
+  def initialize(cfg,jobset,auto)
+    @auto=(auto ? [] : nil)
+
     @jobset=jobset
     @cfg=cfg
 
     @thread=nil
-    @need=nil
+    @need=@auto
 
     t=now_f
     @last_start=t
@@ -81,7 +83,7 @@ class Runner
               cfg=@cfg
               return unless cfg
               need=@need
-              @need=nil
+              @need=@auto
             end
 
             # begin

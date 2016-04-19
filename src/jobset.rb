@@ -5,7 +5,8 @@ require_relative 'runner'
 
 class JobSet
 
-  def initialize
+  def initialize(auto)
+    @auto=auto
     @jobs={}
   end
 
@@ -16,8 +17,10 @@ class JobSet
   def load_json(json)
 
     newcfg={}
-    json.each_pair do |k,v|
-      newcfg[k]=Cfg.new(k,v)
+    if json
+      json.each_pair do |k,v|
+        newcfg[k]=Cfg.new(k,v)
+      end
     end
 
     newcfg.each_pair do |n,c|
@@ -25,7 +28,7 @@ class JobSet
       if p
         p.set_cfg(c)
       else
-        @jobs[n]=Runner.new(c,self)
+        @jobs[n]=Runner.new(c,self,@auto)
       end
     end
     @jobs.each_pair do |n,j|
