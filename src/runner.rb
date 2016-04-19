@@ -58,24 +58,48 @@ class Runner
             need=nil
             @mutex.synchronize do
 
-              while not @need
+              while true
+                # Loop until it is time to run,
+                # or we're gone.
                 cfg=@cfg
                 return unless cfg
+
+                # Handle idle time. jobs have no idle default,
+                # procs wait 30s between executions, unles
+                # configured otherwise.
+                idle=(cfg.idle || (@auto ? 30 : nil))
+                now=now_f
                 t=nil
+                if idle
+                  t=idle+@last_end
+                  t=nil if t < now # Gone already.
+                end
+                # If t is set, we need to wait
+                # at least til then.
+
+                break if @need and not t
+
                 if cfg.period
-                  t=cfg.period+@last_start
+                  u=cfg.period+@last_start
+                  t = u unless t and t > u
                 end
                 if cfg.pause
                   u=cfg.pause+@last_end
                   t = u unless t and t > u
                 end
+
+                # If we have neither period nor pause,
+                # there is nothing to wait for. (If
+                # we're still in idle, t won't be nil.)
                 return unless t
+
+                # Now wait for t to occur.
                 t+=cfg.rand*rand if cfg.rand
-                dt=t-now_f
+                dt=t-now
                 break if dt < 0.05
                 begin
                   @mutex.sleep(dt)
-                rescue Exception =>e
+                rescue Exception => e
                   puts e.inspect
                 end
               end
