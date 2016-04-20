@@ -9,6 +9,7 @@ class Mailer
   def send(to, subject, body)
     msg="From: #{@from}
 To: #{to}
+Auto-submitted: auto-generated
 Subject: #{subject}
 
 "+body+"
