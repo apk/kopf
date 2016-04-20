@@ -1,18 +1,6 @@
-#!/opt/rh-ng/ruby-200/root/usr/bin/ruby
-
 require 'rubygems'
 require 'websocket-client-simple'
 require 'json'
-
-require_relative 'src/jobset.rb'
-
-Dir.chdir __dir__
-
-$jobset=JobSet.new
-
-def diag(s)
-  STDERR.puts "    #{Time.now.to_s}: #{s}"
-end
 
 def proc_msg(x)
   begin
@@ -24,6 +12,7 @@ def proc_msg(x)
     else
       d=[]
     end
+    # puts "#{a.inspect} #{d.inspect}" if a[0] == 'bridge'
     if a == ['bridge','trigger','rfd']
       $jobset.kick('rfd',*d)
     elsif a == ['bridge','trigger','baseline']
@@ -55,20 +44,4 @@ end
 ws.on :error do |e|
   diag "Error!"
   p e
-end
-
-tm=nil
-fn='main.cfg'
-loop do
-  sleep 6
-  begin
-    s=File.stat(fn)
-    if s.mtime != tm
-      diag "config changed..."
-      tm=s.mtime
-      $jobset.load(File.read(fn))
-    end
-  rescue => e
-    diag "E: #{e.inspect}"
-  end
 end
