@@ -85,7 +85,7 @@ class Cfg
     @period=get_opt_int('period')
     @rand=get_opt_int('random')
     @mailto=get_opt_strlist('mail-to')
-    @mailfrom=get_opt_strlist('mail-from')
+    @mailfrom=get_opt_str('mail-from')
     @logstart=get_bool('log-start',true)
     @logoutput=get_bool('log-output',false)
 
