@@ -17,10 +17,17 @@ end
 def proc_msg(x)
   begin
     j=JSON.parse(x)
-    if j['a'] == ['bridge','trigger','rfd']
-      $jobset.kick('rfd')
-    elsif j['a'] == ['bridge','trigger','baseline']
-      $jobset.kick('baseline')
+    a=j['a']
+    d=j['d']
+    if d.is_a? String
+      d=[d]
+    else
+      d=[]
+    end
+    if a == ['bridge','trigger','rfd']
+      $jobset.kick('rfd',*d)
+    elsif a == ['bridge','trigger','baseline']
+      $jobset.kick('baseline',*d)
     end
   rescue => e
     diag "E: #{e.inspect}"
