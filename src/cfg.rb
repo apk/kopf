@@ -93,11 +93,11 @@ class Cfg
     if @trigger
       unless is_str_or_list(@trigger)
         unless @trigger.is_a? Hash
-        throw ArgumentError.new("(#{@trigger.inspect}) is not a string or string list, or hash of such")
-          @trigger.each_pair do |k,v|
-            unless k.is_a? String and is_str_or_list(v)
-              throw ArgumentError.new("(#{@trigger.inspect}) is not a string or string list, or hash of such")
-            end
+          throw ArgumentError.new("(#{@trigger.inspect}) is not a string or string list, or hash of such")
+        end
+        @trigger.each_pair do |k,v|
+          unless k.is_a? String and is_str_or_list(v)
+            throw ArgumentError.new("(#{@trigger.inspect}) is not a string or string list, or hash of such")
           end
         end
       end
