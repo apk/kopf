@@ -26,11 +26,13 @@ Dir.chdir cfgdir
 puts "Config: #{cfgfile}"
 
 tm=nil
+first=true
 while true
   begin
     s=File.stat(cfgfile)
     if s.mtime != tm
-      diag "Config #{cfgfile.inspect} changed..."
+      diag "Config #{cfgfile.inspect} changed..." unless first
+      first=false
       tm=s.mtime
       cfg=JSON.parse(File.read(cfgfile))
       ps.load_json(cfg['procs'])
@@ -57,5 +59,8 @@ while true
       puts ":: #{b}"
     end
   end
-  sleep 10
+  t=Time.now.to_i
+  sleep (60 - (t % 60))
+  t=Time.now
+  js.cron(t.hour, t.min, t.day, t.month, t.wday)
 end

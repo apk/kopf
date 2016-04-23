@@ -48,4 +48,10 @@ class JobSet
     j.kick(*a) if j
   end
 
+  def cron(*a)
+    @jobs.each do |k,v|
+      v.cron(a)
+    end
+  end
+
 end

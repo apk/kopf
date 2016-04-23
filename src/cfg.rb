@@ -1,3 +1,5 @@
+require_relative "cron"
+
 class Cfg
 
   def check(r,x,c)
@@ -102,6 +104,33 @@ class Cfg
         end
       end
     end
+
+    cron=@conf['cron']
+    if cron
+      res=cron
+      if is_str_or_list(res)
+        if res.is_a? String
+          res=[res]
+        end
+        c={}
+        res.each do |d|
+          c[d]=[]
+        end
+        res=c
+      end
+      unless res.is_a? Hash
+        throw ArgumentError.new("(#{cron.inspect}) is not a string or string list, or hash of such")
+      end
+      c={}
+      res.each_pair do |k,v|
+        unless k.is_a? String and is_str_or_list(v)
+          throw ArgumentError.new("(#{cron.inspect}) is not a string or string list, or hash of such")
+        end
+        c[CronEntry.new(k)]=v
+      end
+      res=c
+    end
+    @cron=res
   end
 
   def trigger(jobset)
@@ -120,6 +149,16 @@ class Cfg
         end
       else
         jobset.kick(@trigger)
+      end
+    end
+  end
+
+  def cron(a,job)
+    if @cron
+      @cron.each_pair do |k,v|
+        if k.match(*a)
+          job.kick(*v)
+        end
       end
     end
   end

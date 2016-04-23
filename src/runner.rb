@@ -48,6 +48,10 @@ class Runner
     start_thread
   end
 
+  def cron(a)
+    @cfg.cron(a,self) if @cfg
+  end
+
   def start_thread
     @mutex.synchronize do
 
