@@ -1,7 +1,8 @@
 require_relative 'src/jobset.rb'
 
 def diag(s)
-  STDERR.puts "    #{Time.now.to_s}: #{s}"
+  STDOUT.puts "    #{Time.now.to_s}: #{s}"
+  STDOUT.flush
 end
 
 js=JobSet.new(false)
@@ -11,12 +12,41 @@ $jobset=js # Dirty, but for now for the plugins
 
 cfgfile='test.cfg'
 
+def grep_procs(x)
+  r=0
+  File.popen('ps ax','r') do |f|
+    f.each_line do |l|
+      if l.index($0)
+        r+=1
+      end
+    end
+  end
+  r > 1
+end
+
 ARGV.each do |a|
-  cfgfile=a
+  case a
+  when '--cron'
+    if grep_procs(' '+$0)
+      exit
+    end
+    Dir.chdir($0.sub(/\/[^\/]+$/,''))
+    begin
+      Dir.mkdir('log')
+    rescue => e
+      # nix
+    end
+    exit! if fork
+    $stdout.reopen('log/runner.log','a')
+    $stderr.reopen('log/runnerr.log','a')
+    $stdin.reopen('/dev/null','r')
+  else
+    cfgfile=a
+  end
 end
 
 cfgdir='.'
-if cfgfile =~ /\/([^\/]+)/
+if cfgfile =~ /\/([^\/]+)$/
   cfgdir=$'
   cfgfile=$1
 end
@@ -24,6 +54,7 @@ end
 Dir.chdir cfgdir
 
 puts "Config: #{cfgfile}"
+STDOUT.flush
 
 tm=nil
 first=true
@@ -58,6 +89,7 @@ while true
     e.backtrace.each do |b|
       puts ":: #{b}"
     end
+    STDOUT.flush
   end
   t=Time.now.to_i
   sleep (60 - (t % 60))
