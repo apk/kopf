@@ -10,7 +10,7 @@ ps=JobSet.new(true)
 
 $jobset=js # Dirty, but for now for the plugins
 
-cfgfile='test.cfg'
+cfgfile=nil
 
 def grep_procs(x)
   r=0
@@ -24,26 +24,38 @@ def grep_procs(x)
   r > 1
 end
 
+logdir='log'
+
 ARGV.each do |a|
   case a
+  when /^--logdir=/
+    logdir=$'
   when '--cron'
     if grep_procs(' '+$0)
       exit
     end
     Dir.chdir($0.sub(/\/[^\/]+$/,''))
     begin
-      Dir.mkdir('log')
+      Dir.mkdir(logdir)
     rescue => e
       # nix
     end
     exit! if fork
-    $stdout.reopen('log/runner.log','a')
-    $stderr.reopen('log/runnerr.log','a')
+    $stdout.reopen(logdir+'/runner.log','a')
+    $stderr.reopen(logdir+'/runnerr.log','a')
     $stdin.reopen('/dev/null','r')
+  when /^-/
+    puts "Extra option #{a.inspect} ignored"
   else
-    cfgfile=a
+    if cfgfile
+      puts "Extra argument #{a.inspect} ignored"
+    else
+      cfgfile=a
+    end
   end
 end
+
+cfgfile||='kopf.cfg'
 
 cfgdir='.'
 if cfgfile =~ /\/([^\/]+)$/
