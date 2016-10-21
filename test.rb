@@ -41,8 +41,9 @@ ARGV.each do |a|
       # nix
     end
     exit! if fork
-    $stdout.reopen(logdir+'/runner.log','a')
-    $stderr.reopen(logdir+'/runnerr.log','a')
+    lf=File.open(logdir+'/runner.log','a')
+    $stdout.reopen(lf)
+    $stderr.reopen(lf)
     $stdin.reopen('/dev/null','r')
   when /^-/
     puts "Extra option #{a.inspect} ignored"
