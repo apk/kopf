@@ -75,13 +75,14 @@ class Cfg
     check(@conf[x],x,Numeric)
   end
 
-  attr_reader :title, :cmd, :idle, :pause, :period, :rand
+  attr_reader :title, :cmd, :dir, :idle, :pause, :period, :rand
   attr_reader :mailto, :mailfrom, :logstart, :logoutput
 
   def initialize(name,json)
     @conf=json
     @title=get_opt_str('title')||name
     @cmd=get_opt_str_or_list('command')
+    @dir=get_opt_str('dir')
     @idle=get_opt_int('idle')
     @pause=get_opt_int('pause')
     @period=get_opt_int('period')

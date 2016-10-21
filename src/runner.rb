@@ -117,6 +117,7 @@ class Runner
             # begin
             cmd=cfg.cmd
             if cmd
+              dir=cfg.dir
 
               if cfg.logstart
                 puts "+++ #{Time.now.to_s} #{cfg.title}"
@@ -133,7 +134,9 @@ class Runner
               end
               @last_start=now_f
               output=[]
-              IO.popen(cmd,'r',err: [:child, :out]) do |f|
+              opts={ err: [:child, :out] }
+              opts[:chdir]=dir if dir
+              IO.popen(cmd,'r',opts) do |f|
                 f.each_line do |l|
                   if cfg.logoutput
                     puts "        #{cfg.title}: #{l}"
