@@ -69,7 +69,7 @@ class Runner
                 return unless cfg
 
                 # Handle idle time. jobs have no idle default,
-                # procs wait 30s between executions, unles
+                # procs wait 30s between executions, unless
                 # configured otherwise.
                 idle=(cfg.idle || (@auto ? 30 : nil))
                 now=now_f
