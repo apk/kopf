@@ -2,12 +2,16 @@ require 'net/smtp'
 
 class Mailer
 
-  def initialize(from)
+  def initialize(from,name=nil)
     @from=from
+    @name=from
+    if name
+      @name="#{name} <#{from}>"
+    end
   end
 
   def send(to, subject, body)
-    msg="From: #{@from}
+    msg="From: #{@name}
 To: #{to}
 Auto-submitted: auto-generated
 Subject: #{subject}
