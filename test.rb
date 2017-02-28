@@ -60,7 +60,7 @@ cfgfile||='kopf.cfg'
 
 cfgdir='.'
 if cfgfile =~ /\/([^\/]+)$/
-  cfgdir=$'
+  cfgdir=$`
   cfgfile=$1
 end
 
