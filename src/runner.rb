@@ -26,6 +26,7 @@ class Runner
     t=now_f
     @last_start=t
     @last_end=t
+    @cnt=0
 
     @mutex=Mutex.new
 
@@ -119,8 +120,9 @@ class Runner
             if cmd
               dir=cfg.dir
 
+              @cnt+=1
               if cfg.logstart
-                puts "+++ #{Time.now.to_s} #{cfg.title}"
+                puts "+++ #{Time.now.to_s} #{cfg.title} ##{@cnt}"
                 STDOUT.flush
               end
               if need
