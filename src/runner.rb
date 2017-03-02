@@ -170,6 +170,16 @@ class Runner
                 STDOUT.flush
               end
 
+              if $$ == 1
+                while true
+                  begin
+                    break unless Process.waitpid(-1,Process::WNOHANG)
+                  rescue => e
+                    #
+                  end
+                end
+              end
+
             else
 
               if cfg.logstart
