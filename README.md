@@ -49,10 +49,12 @@ The following configuration points exist:
   relative to the execution directory of `kopf` which is
   also the default value.
 
-* `cron` is a hash from cron expressions to strings or arrays
+* `cron` is either a string or an array of strings of cron expressions,
+  or else a hash from cron expressions to strings or arrays
   of strings. The cron expressions determine when a cron entry
-  fires, and when it does the string or array of strings are
-  appended to the static `command`, and exection is scheduled.
+  fires (and causes the job to run), and in the hash form the
+  respective hash values are appended to the static `command`
+  for the next execution.
 
 * `log-start` is a boolean whether to log the start and end
   of job executions; default `true`.
