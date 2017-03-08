@@ -22,10 +22,10 @@ class Runner
 
     @thread=nil
     @need=@auto
+    @needtime=now_f
 
-    t=now_f
-    @last_start=t
-    @last_end=t
+    @last_start=nil
+    @last_end=nil
     @cnt=0
 
     @mutex=Mutex.new
@@ -42,7 +42,10 @@ class Runner
 
   def kick(*a)
     @mutex.synchronize do
-      @need||=[]
+      unless @need
+        @need=[]
+        @needtime=now_f
+      end
       @need+=a
       @thread.wakeup if @thread
     end
@@ -53,6 +56,45 @@ class Runner
     @cfg.cron(a,self) if @cfg
   end
 
+  class Next
+    def initialize
+      @t=nil
+    end
+
+    def shorten(val,start)
+      if val
+        u=val+start
+        @t=u unless @t and @t < u
+      end
+    end
+
+    def extend(val,start,dflt=nil)
+      if val
+        if dflt and not start
+          start=dflt
+          val=val*rand
+        end
+        if start
+          u=val+start
+          @t=u unless @t and @t > u
+        end
+      end
+    end
+
+    def add(val)
+      @t+=val if @t
+    end
+
+    def clear?
+      @t==nil
+    end
+
+    def pt
+      @t
+    end
+
+  end
+
   def start_thread
     @mutex.synchronize do
 
@@ -61,6 +103,7 @@ class Runner
           begin
             cfg=nil
             need=nil
+            rnd=rand # Want a contant value per round
             @mutex.synchronize do
 
               while true
@@ -69,50 +112,48 @@ class Runner
                 cfg=@cfg
                 return unless cfg
 
-                # Handle idle time. jobs have no idle default,
-                # procs wait 30s between executions, unless
-                # configured otherwise.
-                idle=(cfg.idle || (@auto ? 30 : nil))
                 now=now_f
-                t=nil
-                if idle
-                  t=idle+@last_end
-                  t=nil if t < now # Gone already.
-                end
-                # If t is set, we need to wait
-                # at least til then.
+                t=Next.new
 
-                break if @need and not t
-
-                if cfg.period
-                  u=cfg.period+@last_start
-                  t = u unless t and t > u
-                end
-                if cfg.pause
-                  u=cfg.pause+@last_end
-                  t = u unless t and t > u
+                if cfg.period or cfg.pause
+                  t.extend(cfg.period,@last_start,@needtime)
+                  t.extend(cfg.pause,@last_end,@needtime)
+                  t.add(cfg.rand*rnd) if cfg.rand
                 end
 
-                # If we have neither period nor pause,
-                # there is nothing to wait for. (If
-                # we're still in idle, t won't be nil.)
-                return unless t
+                if @need
+                  # Handle idle time. jobs have no idle default,
+                  # procs wait 10s between executions, unless
+                  # configured otherwise. idle also only applies when
+                  # triggered or a proc (where @need is also set).
+                  idle=(cfg.idle || (@auto ? 10 : nil))
+                  t.shorten(idle,@needtime)
+                end
+
+                # If we have nothing to wait for (not even
+                # in the past, i.e. 'idle' is over), we are
+                # a job without configured times, and can stop when
+                # not '@need'ed.
+
+                if t.clear?
+                  break if @need # Execute need
+                  return # Stop and wait for trigger
+                end
 
                 # Now wait for t to occur.
-                t+=cfg.rand*rand if cfg.rand
-                dt=t-now
+                dt=t.pt-now
                 break if dt < 0.05
                 begin
                   @mutex.sleep(dt)
-                rescue Exception => e
-                  puts e.inspect
+                rescue => e
+                  puts 'E:'+e.inspect
                 end
               end
 
               cfg=@cfg
               return unless cfg
               need=@need
-              @need=@auto
+              @need=nil
             end
 
             # begin
@@ -134,12 +175,15 @@ class Runner
                   cmd=cmd+need
                 end
               end
+
               @last_start=now_f
               output=[]
               opts={ err: [:child, :out] }
               opts[:chdir]=dir if dir
               IO.popen(cmd,'r',opts) do |f|
                 f.each_line do |l|
+# Doing partial mail output sometime?
+# In a separate thread?
                   if cfg.logoutput
                     puts "        #{cfg.title}: #{l}"
                   end
@@ -189,6 +233,12 @@ class Runner
               @last_start=now_f
               @last_end=now_f
 
+            end
+            # Set so we always wait 'idle' after a run.
+            @needtime=now_f
+
+            if @auto and not @need
+              @need=@auto
             end
 
             cfg.trigger(@jobset)
