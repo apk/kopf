@@ -247,6 +247,16 @@ class Runner
             # puts "B: #{e.backtrace.inspect}"
             # end
 
+          rescue => e
+            puts "Thread died by #{e.inspect}"
+            begin
+              e.backtrace.each do |f|
+                puts 'L: '+f
+              end
+            rescue => ee
+              puts "Double died by #{ee.inspect}"
+            end
+            sleep 10
           ensure
             @mutex.synchronize do
               @thread=nil
