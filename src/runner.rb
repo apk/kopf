@@ -117,11 +117,13 @@ class Runner
         end
 
         if @need
-          # Handle idle time. jobs have no idle default,
-          # procs wait 10s between executions, unless
-          # configured otherwise. idle also only applies when
-          # triggered or a proc (where @need is also set).
-          idle=(cfg.idle || (@auto ? 10 : nil))
+          # Handle idle time. Jobs run immediately when kicked
+          # and no idle time is set; procs wait 10s between
+          # executions by default.
+          #
+          # idle only applies when triggered or a proc
+          # (where @need is also set).
+          idle=(cfg.idle || (@auto ? 10 : 0))
           t.shorten(idle,@needtime)
         end
 
