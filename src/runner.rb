@@ -216,7 +216,7 @@ class Runner
           begin
             break unless Process.waitpid(-1,Process::WNOHANG)
           rescue => e
-            #
+            break
           end
         end
       end
