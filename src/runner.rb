@@ -95,157 +95,161 @@ class Runner
 
   end
 
+  def exec
+    cfg=nil
+    need=nil
+    rnd=rand # Want a contant value per round
+    @mutex.synchronize do
+
+      while true
+        # Loop until it is time to run,
+        # or we're gone.
+        cfg=@cfg
+        return false unless cfg
+
+        now=now_f
+        t=Next.new
+
+        if cfg.period or cfg.pause
+          t.extend(cfg.period,@last_start,@needtime)
+          t.extend(cfg.pause,@last_end,@needtime)
+          t.add(cfg.rand*rnd) if cfg.rand
+        end
+
+        if @need
+          # Handle idle time. jobs have no idle default,
+          # procs wait 10s between executions, unless
+          # configured otherwise. idle also only applies when
+          # triggered or a proc (where @need is also set).
+          idle=(cfg.idle || (@auto ? 10 : nil))
+          t.shorten(idle,@needtime)
+        end
+
+        # If we have nothing to wait for (not even
+        # in the past, i.e. 'idle' is over), we are
+        # a job without configured times, and can stop when
+        # not '@need'ed.
+
+        if t.clear?
+          break if @need # Execute need
+          return false # Stop and wait for trigger
+        end
+
+        # Now wait for t to occur.
+        dt=t.pt-now
+        break if dt < 0.05
+        begin
+          @mutex.sleep(dt)
+        rescue => e
+          puts 'E:'+e.inspect
+        end
+      end
+
+      cfg=@cfg
+      return false unless cfg
+      need=@need
+      @need=nil
+    end
+
+    # begin
+    cmd=cfg.cmd
+    if cmd
+      dir=cfg.dir
+
+      @cnt+=1
+      if cfg.logstart
+        puts "+++ #{Time.now.to_s} #{cfg.title} ##{@cnt}"
+        STDOUT.flush
+      end
+      if need
+        if cmd.is_a? String
+          need.each do |n|
+            cmd=cmd+' '+n
+          end
+        else
+          cmd=cmd+need
+        end
+      end
+
+      @last_start=now_f
+      output=[]
+      opts={ err: [:child, :out] }
+      opts[:chdir]=dir if dir
+      IO.popen(cmd,'r',opts) do |f|
+        f.each_line do |l|
+# Doing partial mail output sometime?
+# In a separate thread?
+          if cfg.logoutput
+            puts "        #{cfg.title}: #{l}"
+          end
+          if cfg.mailto
+            output.push(l)
+          end
+        end
+      end
+
+      if cfg.mailto and not output.empty?
+        cfg.mailto.each do |m|
+          begin
+            mailer=Mailer.new(cfg.mailfrom || m)
+            mailer.send(m,
+                        ("#{ENV['USER']||ENV['LOGNAME']}@#{ENV['HOSTNAME']}:"+
+                         " Job '#{cfg.title}' output"),
+                        output.join("\n"))
+          rescue => e
+            puts "E: #{e.inspect}"
+            puts "B: #{e.backtrace.inspect}"
+          end
+        end
+      end
+
+      @last_end=now_f
+      if cfg.logstart
+        puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
+        STDOUT.flush
+      end
+
+      if $$ == 1
+        while true
+          begin
+            break unless Process.waitpid(-1,Process::WNOHANG)
+          rescue => e
+            #
+          end
+        end
+      end
+
+    else
+
+      if cfg.logstart
+        puts "=== #{Time.now.to_s} #{cfg.title}"
+        STDOUT.flush
+      end
+      @last_start=now_f
+      @last_end=now_f
+
+    end
+    # Set so we always wait 'idle' after a run.
+    @needtime=now_f
+
+    if @auto and not @need
+      @need=@auto
+    end
+
+    cfg.trigger(@jobset)
+
+    true
+  end
+
   def start_thread
     @mutex.synchronize do
 
       unless @thread
         @thread=Thread.new do
+          need=false
           begin
-            cfg=nil
-            need=nil
-            rnd=rand # Want a contant value per round
-            @mutex.synchronize do
 
-              while true
-                # Loop until it is time to run,
-                # or we're gone.
-                cfg=@cfg
-                return unless cfg
-
-                now=now_f
-                t=Next.new
-
-                if cfg.period or cfg.pause
-                  t.extend(cfg.period,@last_start,@needtime)
-                  t.extend(cfg.pause,@last_end,@needtime)
-                  t.add(cfg.rand*rnd) if cfg.rand
-                end
-
-                if @need
-                  # Handle idle time. jobs have no idle default,
-                  # procs wait 10s between executions, unless
-                  # configured otherwise. idle also only applies when
-                  # triggered or a proc (where @need is also set).
-                  idle=(cfg.idle || (@auto ? 10 : nil))
-                  t.shorten(idle,@needtime)
-                end
-
-                # If we have nothing to wait for (not even
-                # in the past, i.e. 'idle' is over), we are
-                # a job without configured times, and can stop when
-                # not '@need'ed.
-
-                if t.clear?
-                  break if @need # Execute need
-                  return # Stop and wait for trigger
-                end
-
-                # Now wait for t to occur.
-                dt=t.pt-now
-                break if dt < 0.05
-                begin
-                  @mutex.sleep(dt)
-                rescue => e
-                  puts 'E:'+e.inspect
-                end
-              end
-
-              cfg=@cfg
-              return unless cfg
-              need=@need
-              @need=nil
-            end
-
-            # begin
-            cmd=cfg.cmd
-            if cmd
-              dir=cfg.dir
-
-              @cnt+=1
-              if cfg.logstart
-                puts "+++ #{Time.now.to_s} #{cfg.title} ##{@cnt}"
-                STDOUT.flush
-              end
-              if need
-                if cmd.is_a? String
-                  need.each do |n|
-                    cmd=cmd+' '+n
-                  end
-                else
-                  cmd=cmd+need
-                end
-              end
-
-              @last_start=now_f
-              output=[]
-              opts={ err: [:child, :out] }
-              opts[:chdir]=dir if dir
-              IO.popen(cmd,'r',opts) do |f|
-                f.each_line do |l|
-# Doing partial mail output sometime?
-# In a separate thread?
-                  if cfg.logoutput
-                    puts "        #{cfg.title}: #{l}"
-                  end
-                  if cfg.mailto
-                    output.push(l)
-                  end
-                end
-              end
-
-              if cfg.mailto and not output.empty?
-                cfg.mailto.each do |m|
-                  begin
-                    mailer=Mailer.new(cfg.mailfrom || m)
-                    mailer.send(m,
-                                ("#{ENV['USER']||ENV['LOGNAME']}@#{ENV['HOSTNAME']}:"+
-                                 " Job '#{cfg.title}' output"),
-                                output.join("\n"))
-                  rescue => e
-                    puts "E: #{e.inspect}"
-                    puts "B: #{e.backtrace.inspect}"
-                  end
-                end
-              end
-
-              @last_end=now_f
-              if cfg.logstart
-                puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
-                STDOUT.flush
-              end
-
-              if $$ == 1
-                while true
-                  begin
-                    break unless Process.waitpid(-1,Process::WNOHANG)
-                  rescue => e
-                    #
-                  end
-                end
-              end
-
-            else
-
-              if cfg.logstart
-                puts "=== #{Time.now.to_s} #{cfg.title}"
-                STDOUT.flush
-              end
-              @last_start=now_f
-              @last_end=now_f
-
-            end
-            # Set so we always wait 'idle' after a run.
-            @needtime=now_f
-
-            if @auto and not @need
-              @need=@auto
-            end
-
-            cfg.trigger(@jobset)
-            # rescue => e
-            # puts "E: #{e.inspect}"
-            # puts "B: #{e.backtrace.inspect}"
-            # end
+            need=exec
 
           rescue => e
             puts "Thread died by #{e.inspect}"
@@ -256,14 +260,14 @@ class Runner
             rescue => ee
               puts "Double died by #{ee.inspect}"
             end
-            sleep 10
+            sleep 1
           ensure
             @mutex.synchronize do
               @thread=nil
             end
           end
 
-          start_thread
+          start_thread if need
           while true do
             c=@@joinlist.shift
             break unless c
