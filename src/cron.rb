@@ -59,7 +59,7 @@ class CronEntry
     # a; b - multiple entries
     # a #c - comment
     # 1 to 5 ents in pattern, one is minute,
-    # two is hour, minute, then day of month, month, day of week
+    # two is minute, hour, then day of month, month, day of week
     # all non-* must match
 
     #  */2
@@ -93,9 +93,9 @@ class CronEntry
         e[0].match(mn)
       else
         e.size < 1 or
-        (e[0].match(hr) and
+        (e[0].match(mn) and
          (e.size < 2 or 
-          (e[1].match(mn) and
+          (e[1].match(hr) and
            (e.size < 3 or
             (e[2].match(dy) and
              (e.size < 4 or
