@@ -139,3 +139,21 @@ The following configuration points exist for jobs only:
   to trigger; in the hash form the hash entry names are the
   jobs names to trigger, and the values are the extra arguments
   to pass to the respective jobs.
+
+## Issues
+
+`kopf` does not try to kill procs or wait for jobs to finish
+when terminated itself. It probably should.
+
+A control socket (e.g. for triggering jobs externally)
+wouldn't hurt either.
+
+For procs and long-running jobs, `mail-to` is suboptimal, and
+should send partial output after a configurable time.
+
+Logging and actual use aren't documented.
+
+When run with pid 1 (as inside a docker container) it cleans
+up zombie processes it inherited. This may interfere with
+the regular process termination, but the cleanup is only
+performed when a job or proc terminates, so chances are low.
