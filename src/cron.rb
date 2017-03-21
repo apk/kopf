@@ -89,10 +89,7 @@ class CronEntry
 
   def match(hr,mn,dy,mo,wk)
     @entlist.any? do |e|
-      if e.size == 1
-        e[0].match(mn)
-      else
-        e.size < 1 or
+      e.size < 1 or
         (e[0].match(mn) and
          (e.size < 2 or 
           (e[1].match(hr) and
@@ -102,7 +99,6 @@ class CronEntry
               (e[3].match(mo) and
                (e.size < 5 or
                 (e[4].match(wk))))))))))
-      end
     end
   end
 end
