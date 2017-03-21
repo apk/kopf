@@ -145,6 +145,22 @@ The following configuration points exist for jobs only:
 `kopf` does not try to kill procs or wait for jobs to finish
 when terminated itself. It probably should.
 
+A `protos` section with partial configs, and a
+a `proto` config point to include those would
+be helpful to avoid repetition (cron partially
+does this by having global vars).
+
+Also, `restart-on-change` and `hup-on-change`
+for monitoring files and restaring/signalling
+on changes:
+```
+  "tor":{
+     "restart-on-change":"tor.bin",
+     "hup-on-change":"tor.rc",
+     "command":["tor.bin","-f","tor.rc"]
+  }
+```
+
 A control socket (e.g. for triggering jobs externally)
 wouldn't hurt either.
 
