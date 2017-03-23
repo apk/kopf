@@ -16,35 +16,49 @@ def grep_procs(x)
   r=0
   File.popen('ps ax','r') do |f|
     f.each_line do |l|
-      if l.index($0)
+      if l.index(x)
         r+=1
       end
     end
   end
-  r > 1
+  # We must exactly see ourselves. If we see
+  # more the daemon is already running, if we
+  # see less, we don't detect ourselves which
+  # is bad.
+  r != 1
 end
 
 logdir='log'
+
+case ARGV[0]
+when '--cron'
+  ARGV.shift
+  # Check if we already find ourselves (where
+  # we need to consider that this invocation
+  # must be discounted. We grep for the 'ruby'
+  # in front b/c on NetBSD there is also the
+  # /bin/sh -c with our path in it during the
+  # cron execution. Systems are hard.
+  exit if grep_procs('ruby '+$0+' --cron')
+
+  # Start executing in the dir we are in.
+  Dir.chdir($0.sub(/\/[^\/]+$/,''))
+  begin
+    Dir.mkdir(logdir)
+  rescue => e
+    # nix
+  end
+  exit! if fork
+  lf=File.open(logdir+'/runner.log','a')
+  $stdout.reopen(lf)
+  $stderr.reopen(lf)
+  $stdin.reopen('/dev/null','r')
+end
 
 ARGV.each do |a|
   case a
   when /^--logdir=/
     logdir=$'
-  when '--cron'
-    if grep_procs(' '+$0)
-      exit
-    end
-    Dir.chdir($0.sub(/\/[^\/]+$/,''))
-    begin
-      Dir.mkdir(logdir)
-    rescue => e
-      # nix
-    end
-    exit! if fork
-    lf=File.open(logdir+'/runner.log','a')
-    $stdout.reopen(lf)
-    $stderr.reopen(lf)
-    $stdin.reopen('/dev/null','r')
   when /^-/
     puts "Extra option #{a.inspect} ignored"
   else
