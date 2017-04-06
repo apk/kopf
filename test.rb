@@ -1,7 +1,11 @@
 require_relative 'src/jobset.rb'
 
-def diag(s)
-  STDOUT.puts "    #{Time.now.to_s}: #{s}"
+def diag(*s)
+  unless s.size == 1 and s[0].is_a? String
+    s=s.map{|x| x.inspect }
+  end
+  s=s.map{|x| ' '+x }.join('')
+  STDOUT.puts "    #{Time.now.to_s}:#{s}"
   STDOUT.flush
 end
 
