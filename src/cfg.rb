@@ -76,7 +76,7 @@ class Cfg
   end
 
   attr_reader :title, :cmd, :dir, :idle, :pause, :period, :rand
-  attr_reader :mailto, :mailfrom, :logstart, :logoutput
+  attr_reader :mailto, :mailfrom, :mailhost, :logstart, :logoutput
 
   def initialize(name,json)
     @conf=json
@@ -89,6 +89,7 @@ class Cfg
     @rand=get_opt_int('random')
     @mailto=get_opt_strlist('mail-to')
     @mailfrom=get_opt_str('mail-from')
+    @mailhost=get_opt_str('mailhost')
     @logstart=get_bool('log-start',true)
     @logoutput=get_bool('log-output',false)
 
