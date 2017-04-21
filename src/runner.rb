@@ -193,7 +193,7 @@ class Runner
       if cfg.mailto and not output.empty?
         cfg.mailto.each do |m|
           begin
-            mailer=Mailer.new(cfg.mailfrom || m)
+            mailer=Mailer.new(cfg.mailfrom || m, mailhost: cfg.mailhost)
             mailer.send(m,
                         ("#{ENV['USER']||ENV['LOGNAME']}@#{ENV['HOSTNAME']}:"+
                          " Job '#{cfg.title}' output"),

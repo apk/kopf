@@ -2,9 +2,10 @@ require 'net/smtp'
 
 class Mailer
 
-  def initialize(from,name=nil)
+  def initialize(from,name=nil,mailhost:'mailhost')
     @from=from
     @name=from
+    @host=mailhost
     if name
       @name="#{name} <#{from}>"
     end
@@ -23,11 +24,11 @@ Run at #{Dir.getwd} #{ENV['HOSTNAME']}
 "
 
     begin
-      Net::SMTP.start('localhost') do |smtp|
+      Net::SMTP.start(@host) do |smtp|
         smtp.send_message(msg, @from, to)
       end
     rescue => e
-      puts "Mail error sending to #{to}: #{e.inspect}"
+      puts "Mail error sending from #{@from.inspect} to #{to.inspect} via #{@host.inspect}: #{e.inspect}"
     end
 
   end
