@@ -1,5 +1,7 @@
 require_relative 'src/jobset.rb'
 
+require 'etc'
+
 def diag(*s)
   unless s.size == 1 and s[0].is_a? String
     s=s.map{|x| x.inspect }
@@ -57,6 +59,16 @@ when '--cron'
   $stdout.reopen(lf)
   $stderr.reopen(lf)
   $stdin.reopen('/dev/null','r')
+when /\A--user=([a-z][0-9a-z]*)\Z/
+  begin
+    u=Etc.getpwnam($1)
+    Process::Sys.setregid(u.gid,u.gid)
+    Process::Sys.setreuid(u.uid,u.uid)
+  rescue => e
+    puts "Uid assumption failed: #{e.inspect}"
+    exit 9
+  end
+  ARGV.shift
 end
 
 ARGV.each do |a|
