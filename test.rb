@@ -138,4 +138,5 @@ while true
   sleep (60 - (t % 60))
   t=Time.now
   js.cron(t.hour, t.min, t.day, t.month, t.wday)
+  ps.checks
 end

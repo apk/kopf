@@ -2,6 +2,42 @@ require_relative "cron"
 
 class Cfg
 
+  class StatFileSet
+    def initialize(files,cfg)
+      @cfg=cfg
+      @files=files||[]
+      @stat=mapstat
+    end
+
+    def check
+      stat=mapstat
+      if stat != @stat
+        @stat=stat
+        return true
+      end
+      return false
+    end
+
+    def mapstat
+      @files.map do |f|
+        begin
+          unless f[0] == '/'
+            d=@cfg.dir
+            if d
+              f=d+'/'+f
+            end
+          end
+          s=File::Stat.new(f)
+          s=[s.mtime,s.size]
+        rescue Errno::ENOENT
+          s=nil
+        rescue => e
+          s=e.inspect
+        end
+      end
+    end
+  end
+
   def check(r,x,c)
     throw ArgumentError.new("#{x}(#{r.inspect}) is not a number") unless r.is_a? c
     r
@@ -107,9 +143,12 @@ class Cfg
       end
     end
 
+    @restart_files=StatFileSet.new(get_opt_strlist('restart-on-file'),self)
+    @hup_files=StatFileSet.new(get_opt_strlist('hup-on-file'),self)
+
     cron=@conf['cron']
+    res=cron
     if cron
-      res=cron
       if is_str_or_list(res)
         if res.is_a? String
           res=[res]
@@ -152,6 +191,16 @@ class Cfg
       else
         jobset.kick(@trigger)
       end
+    end
+  end
+
+  def checks(job)
+    diag "Check..."
+    s=@hup_files.check
+    if @restart_files.check
+      job.kill
+    elsif s
+      job.hup
     end
   end
 

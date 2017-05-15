@@ -140,6 +140,17 @@ The following configuration points exist for jobs only:
   jobs names to trigger, and the values are the extra arguments
   to pass to the respective jobs.
 
+The following configuration points exists for procs only:
+
+* `restart-on-file` is a string or an array of strings of files
+  names. If one these files changes in size, modification time
+  or existence, a running instance of the proc is terminated
+  (via `SIGTERM`), and a new instance will be started. Relative
+  file names are interpreted relative to the configured `dir`.
+
+* `hup-on-file` is like `restart-on-file` except that a
+  `SIGHUP` is delivered to the process instead of terminating it.
+
 ## Issues
 
 `kopf` does not try to kill procs or wait for jobs to finish
@@ -150,16 +161,9 @@ a `proto` config point to include those would
 be helpful to avoid repetition (cron partially
 does this by having global vars).
 
-Also, `restart-on-change` and `hup-on-change`
-for monitoring files and restaring/signalling
-on changes:
-```
-  "tor":{
-     "restart-on-change":"tor.bin",
-     "hup-on-change":"tor.rc",
-     "command":["tor.bin","-f","tor.rc"]
-  }
-```
+`restart-on-change` only `SIGTERM`s the proces
+(and only the head process); it does no kill
+after a timeout.
 
 A control socket (e.g. for triggering jobs externally)
 wouldn't hurt either.

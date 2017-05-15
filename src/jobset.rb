@@ -54,4 +54,10 @@ class JobSet
     end
   end
 
+  def checks
+    @jobs.each do |k,v|
+      v.checks
+    end
+  end
+
 end

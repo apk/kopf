@@ -40,6 +40,16 @@ class Runner
     end
   end
 
+  def kill
+    puts "RESTART: #{@cfg.title}"
+    Process.kill('TERM', @pid)
+  end
+
+  def hup
+    puts "HUP: #{@cfg.title}"
+    Process.kill('HUP', @pid)
+  end
+
   def kick(*a)
     @mutex.synchronize do
       unless @need
@@ -54,6 +64,10 @@ class Runner
 
   def cron(a)
     @cfg.cron(a,self) if @cfg
+  end
+
+  def checks
+    @cfg.checks(self) if @cfg
   end
 
   class Next
@@ -178,6 +192,7 @@ class Runner
       opts={ err: [:child, :out] }
       opts[:chdir]=dir if dir
       IO.popen(cmd,'r',opts) do |f|
+        @pid=f.pid
         f.each_line do |l|
 # Doing partial mail output sometime?
 # In a separate thread?
@@ -188,6 +203,7 @@ class Runner
             output.push(l)
           end
         end
+        @pid=nil
       end
 
       if cfg.mailto and not output.empty?
