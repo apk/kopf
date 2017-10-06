@@ -198,6 +198,7 @@ class Runner
 # In a separate thread?
           if cfg.logoutput
             puts "        #{cfg.title}: #{l}"
+            STDOUT.flush
           end
           if cfg.mailto
             output.push(l)
