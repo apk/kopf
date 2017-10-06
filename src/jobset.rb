@@ -14,12 +14,12 @@ class JobSet
     load_json(JSON.parse(txt))
   end
 
-  def load_json(json)
+  def load_json(json,defcfg)
 
     newcfg={}
     if json
       json.each_pair do |k,v|
-        newcfg[k]=Cfg.new(k,v)
+        newcfg[k]=Cfg.new(k,v,defcfg)
       end
     end
 

@@ -63,6 +63,13 @@ class Cfg
     end
   end
 
+  def get_opt_str_def(x)
+    r=@conf[x] || (@defcon && @defcon[x])
+    if r
+      check(r,x,String)
+    end
+  end
+
   def get_str(x)
     check(@conf[x],x,String)
   end
@@ -114,8 +121,9 @@ class Cfg
   attr_reader :title, :cmd, :dir, :idle, :pause, :period, :rand
   attr_reader :mailto, :mailfrom, :mailhost, :logstart, :logoutput
 
-  def initialize(name,json)
+  def initialize(name,json,defcfg)
     @conf=json
+    @defcon=defcfg
     @title=get_opt_str('title')||name
     @cmd=get_opt_str_or_list('command')
     @dir=get_opt_str('dir')
@@ -124,8 +132,8 @@ class Cfg
     @period=get_opt_int('period')
     @rand=get_opt_int('random')
     @mailto=get_opt_strlist('mail-to')
-    @mailfrom=get_opt_str('mail-from')
-    @mailhost=get_opt_str('mailhost')
+    @mailfrom=get_opt_str_def('mail-from')
+    @mailhost=get_opt_str_def('mailhost')
     @logstart=get_bool('log-start',true)
     @logoutput=get_bool('log-output',false)
 

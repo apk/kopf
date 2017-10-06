@@ -109,8 +109,9 @@ while true
       first=false
       tm=s.mtime
       cfg=JSON.parse(File.read(cfgfile))
-      ps.load_json(cfg['procs'])
-      js.load_json(cfg['jobs'])
+      defcfg=cfg['config']
+      ps.load_json(cfg['procs'],defcfg)
+      js.load_json(cfg['jobs'],defcfg)
 
       reqs=cfg['requires']
       if reqs
