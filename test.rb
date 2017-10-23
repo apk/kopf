@@ -59,7 +59,7 @@ when '--cron'
   $stdout.reopen(lf)
   $stderr.reopen(lf)
   $stdin.reopen('/dev/null','r')
-when /\A--user=([a-z][0-9a-z]*)\Z/
+when /\A--user=([a-z][-0-9a-z]*)\Z/
   begin
     u=Etc.getpwnam($1)
     Process::Sys.setregid(u.gid,u.gid)
