@@ -68,7 +68,7 @@ for that job or proc.
 }
 ```
 This simple example runs echo with a single argument `job output`
-every 30 seconds, while keeps a spacing of at least ten seconds
+every 30 seconds, while keeping a spacing of at least ten seconds
 between the end of one run and the start of the next (which is
 unlikely to apply in this example); and also runs a `tor` process
 continuously.
