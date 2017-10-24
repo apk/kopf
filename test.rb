@@ -69,6 +69,20 @@ when /\A--user=([a-z][-0-9a-z]*)\Z/
     exit 9
   end
   ARGV.shift
+when /\A--su=([a-z][-0-9a-z]*)\Z/
+  begin
+    name=$1
+    u=Etc.getpwnam(name)
+    Process::Sys.setregid(u.gid,u.gid)
+    Process::Sys.setreuid(u.uid,u.uid)
+    ENV['HOME']=u.dir
+    ENV['LOGNAME']=name
+    ENV['USER']=name
+  rescue => e
+    puts "Uid assumption failed: #{e.inspect}"
+    exit 9
+  end
+  ARGV.shift
 end
 
 ARGV.each do |a|
