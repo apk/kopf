@@ -4,6 +4,21 @@ class Runner
 
   @@joinlist||=[]
 
+  def tdstr(x)
+    if x < 1
+      "#{(x*1000).to_i}ms"
+    elsif x < 60
+      r=(x*10).to_i
+      "#{r/10}.#{r%10}s"
+    elsif x < 9000
+      r=x.to_i
+      "#{r/60}m#{r%60}s"
+    else
+      r=(x/60).to_i
+      "#{r/60}h#{r%60}m"
+    end
+  end
+
   def now_f
     Time.now.to_f
   end
@@ -222,9 +237,17 @@ class Runner
         end
       end
 
+      exs=''
+      begin
+        rc=$?.exitstatus
+        exs+=" exit #{rc}" if rc != 0
+      rescue Exception => e
+        exs+=' '+e.inspect
+      end
+
       @last_end=now_f
-      if cfg.logstart
-        puts "--- #{Time.now.to_s} #{cfg.title} #{(@last_end-@last_start).to_i}"
+      if cfg.logstart or exs != ''
+        puts "--- #{Time.now.to_s} #{cfg.title} #{tdstr(@last_end-@last_start)}#{exs}"
         STDOUT.flush
       end
 
