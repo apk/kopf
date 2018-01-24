@@ -114,6 +114,11 @@ The following configuration points exist for jobs only:
 
 * `period` is a number in seconds setting the minimum distance
   of the next start of the jobs from the previous start.
+  Note that either `period` or `pause` (or both) must be
+  set for a job to run regularly, otherwise it will only
+  be started by cron expressions and triggers. The initial
+  run happens at a random point within the maximum of
+  `period` or `pause` seconds after startup.
 
 * `pause` is a number in seconds setting the minimum distance
   of the next start of the jobs from the previous end. If `pause`
