@@ -203,7 +203,6 @@ class Cfg
   end
 
   def checks(job)
-    diag "Check..."
     s=@hup_files.check
     if @restart_files.check
       job.kill

@@ -240,7 +240,7 @@ class Runner
       exs=''
       begin
         rc=$?.exitstatus
-        exs+=" exit #{rc}" if rc != 0
+        exs+=" exit #{rc.inspect}" if rc != 0
       rescue Exception => e
         exs+=' '+e.inspect
       end
