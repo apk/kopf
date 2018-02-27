@@ -59,6 +59,21 @@ when '--cron'
   $stdout.reopen(lf)
   $stderr.reopen(lf)
   $stdin.reopen('/dev/null','r')
+when '--log'
+  # Just run with redirected log,
+  # mostly for good citizenship
+  # with systemd (and its strange logging).
+  ARGV.shift
+
+  begin
+    Dir.mkdir(logdir)
+  rescue => e
+    # nix
+  end
+  lf=File.open(logdir+'/runner.log','a')
+  $stdout.reopen(lf)
+  $stderr.reopen(lf)
+  $stdin.reopen('/dev/null','r')
 when /\A--user=([a-z][-0-9a-z]*)\Z/
   begin
     u=Etc.getpwnam($1)
