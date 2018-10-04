@@ -26,13 +26,17 @@ def handle_socket(conn)
 end
 
 Thread.new do
+  sockpath=$plugin_params['cmdsocket']||{}
+  sockpath=sockpath['socket-path']||'sock'
   begin
-    File.unlink('sock')
+    File.unlink(sockpath)
+  rescue Errno::ENOENT
+    #
   rescue => e
     puts "unlink sock: #{e.inspect}"
   end
 
-  socket = UNIXServer.open("sock")
+  socket = UNIXServer.open(sockpath)
 
   while true
     handle_socket(socket.accept)
