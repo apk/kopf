@@ -142,6 +142,10 @@ while true
       ps.load_json(cfg['procs'],defcfg)
       js.load_json(cfg['jobs'],defcfg)
 
+      # TODO: The parameters should somehow be part of the requires section
+      # Hash, name is plugin, value is parameter (hash again, or anything).
+      $plugin_params=cfg['plugin-params']||{}
+
       reqs=cfg['requires']
       if reqs
         if reqs.is_a? String
