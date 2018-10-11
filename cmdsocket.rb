@@ -20,14 +20,15 @@ def handle_socket(conn)
       end
       conn.flush
     end
-    puts "End of socket"
     conn.close
   end
 end
 
 Thread.new do
-  sockpath=$plugin_params['cmdsocket']||{}
-  sockpath=sockpath['socket-path']||'sock'
+  sockparam=$plugin_params['cmdsocket']||{}
+  sockpath=sockparam['socket-path']||'sock'
+  sockmode=sockparam['socket-mode']
+
   begin
     File.unlink(sockpath)
   rescue Errno::ENOENT
@@ -37,6 +38,14 @@ Thread.new do
   end
 
   socket = UNIXServer.open(sockpath)
+
+  if sockmode
+    begin
+      File.chmod(Integer(sockmode), sockpath)
+    rescue => e
+      puts "Setting sockmode #{sockmode}: #{e.inspect}"
+    end
+  end
 
   while true
     handle_socket(socket.accept)
