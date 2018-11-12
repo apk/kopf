@@ -156,6 +156,21 @@ The following configuration points exists for procs only:
 * `hup-on-file` is like `restart-on-file` except that a
   `SIGHUP` is delivered to the process instead of terminating it.
 
+## Extra config files
+
+The main configuration file may have an entry named `.d` containing
+a path pattern. `kopf` tries to match the pattern against files
+in the current directory, where each path component of the pattern
+may contain a single asterisk which matches any characters in the
+file names. Each file named this way is read as an additional
+configuration file, and scanned only for `jobs` and `procs` sections.
+The entries in these are put into the main `jobs* and `procs` sections,
+while prepending the parts matched by the asterisks to the entry names.
+
+E.g. with `".d":"sub-*dir/*.cfg"` entries in a file `sub-onedir/two.cfg`
+will be prepended with `one/two/`, so an jobs entry `name` will
+become `one/two/main` in the complete configuration.
+
 ## Issues
 
 `kopf` does not try to kill procs or wait for jobs to finish

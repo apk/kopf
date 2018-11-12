@@ -11,6 +11,46 @@ def diag(*s)
   STDOUT.flush
 end
 
+def subrek(dir, components, name, cfg)
+  # puts "subrek(#{dir.inspect}, #{components.inspect}, #{name.inspect})"
+  if components.empty?
+    # puts "   - end #{dir} #{name}"
+    subcfg=JSON.parse(File.read(dir))
+    %w( jobs procs ).each do |t|
+      ents=subcfg[t]
+      if ents
+        ents.each do |k,v|
+          cfg[t]||={}
+          cfg[t][name+k]=v
+        end
+      end
+    end
+  else
+    n=components[0]
+    # puts "n #{n.inspect}"
+    if n =~ /\A([^\*]*)\*([^\*]*)\Z/
+      pre=$1
+      post=$2
+      # puts "#{pre.inspect} * #{post.inspect}"
+      if File.directory?(dir)
+        Dir.entries(dir).each do |e|
+          if e.length > pre.length + post.length
+            if e.start_with? pre and e.end_with? post
+              subname=e[pre.length..-post.length-1]
+              # puts "    take #{e.inspect} as #{subname.inspect}"
+              subrek(File.join(dir,e), components[1..-1], name+subname+'/', cfg)
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+def do_subdirs(path, cfg)
+  subrek('.',path.split('/'),'',cfg)
+end
+
 js=JobSet.new(false)
 ps=JobSet.new(true)
 
@@ -138,6 +178,11 @@ while true
       first=false
       tm=s.mtime
       cfg=JSON.parse(File.read(cfgfile))
+
+      subdirs=cfg['.d']
+      if subdirs.is_a? String
+        do_subdirs(subdirs,cfg)
+      end
       defcfg=cfg['config']
       ps.load_json(cfg['procs'],defcfg)
       js.load_json(cfg['jobs'],defcfg)
