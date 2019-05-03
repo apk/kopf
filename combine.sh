@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# Run this script via 'sh ...repopath/combine.sh' in the directory
+# where you want the kopf script.
+
 q="`dirname "$0"`"
 head=''
 if test -r kopf; then
@@ -11,8 +15,9 @@ fi
 (
     echo "$head"
     echo "#"
-    echo "# kopf `git -C "$q" describe --always`"
-    echo "#"
+    echo '# kopf: A job runner, see https://github.com/apk/kopf'
+    echo "# version/id `git -C "$q" describe --always`"
+    echo '#'
     cat \
 	"$q"/src/mailer.rb \
 	"$q"/src/cron.rb \
@@ -25,9 +30,10 @@ chmod +x kopf
 
 if test -r kopf-msgclt.rb; then
     (
-	echo "#"
-	echo "# kopf `git -C "$q" describe --always`"
-	echo "#"
+	echo '#'
+	echo '# kopf-msgclt: A client for https://github.com/apk/msg, for ./kopf'
+	echo "# version/id `git -C "$q" describe --always`"
+	echo '#'
 	cat "$q"/kopf-msgclt.rb
     ) >kopf-msgclt.rb
 fi
