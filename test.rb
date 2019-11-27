@@ -218,4 +218,5 @@ while true
   t=Time.now
   js.cron(t.hour, t.min, t.day, t.month, t.wday)
   ps.checks
+  ObjectSpace.garbage_collect if [ 15, 45 ].include? t.min
 end
