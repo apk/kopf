@@ -66,15 +66,19 @@ class Runner
   end
 
   def kick(*a)
-    @mutex.synchronize do
-      unless @need
-        @need=[]
-        @needtime=now_f
+    begin
+      @mutex.synchronize do
+        unless @need
+          @need=[]
+          @needtime=now_f
+        end
+        @need+=a
+        @thread.wakeup if @thread
       end
-      @need+=a
-      @thread.wakeup if @thread
+      return 1+@cnt
+    ensure
+      start_thread
     end
-    start_thread
   end
 
   def cron(a)
