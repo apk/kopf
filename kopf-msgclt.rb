@@ -34,18 +34,25 @@ def msgclt_run(a,&blk)
         ws.on :close do |e|
           diag "ws: Closed #{e.inspect}"
           p e
+          ws=nil
         end
 
         ws.on :error do |e|
           diag "ws: Error! #{e.inspect}"
           p e
+          ws=nil
         end
 
         diag "ws: init"
 
-        loop do
-          sleep 300
-          ws.send Time.now.to_s
+        cnt=0
+        while ws do
+          cnt+=1
+          if cnt > 20
+            ws.send Time.now.to_s
+            cnt=0
+          end
+          sleep 5
         end
       rescue => e
         diag "ws: error #{e.inspect}"
